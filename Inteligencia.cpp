@@ -73,7 +73,8 @@ int main() {
 	Persona *A;
 	A= new Persona;
 	Lista<NodoPiso> Pisos=Lista<NodoPiso>();
-	Lista<Nodo> Ascensor=Lista<Nodo>();
+	Lista<Nodo> Espera=Lista<Nodo>();
+	Lista<Nodo> Ascensor=
 	Nodo *aux;
 	NodoPiso *aux1;
 	ifstream entrada;
@@ -87,7 +88,7 @@ int main() {
 			for(int i=0;i<num;i++){
 				entrada>>A.nombre>>A.apellido>>A.origen>>A.destino;
 				aux= new Nodo(A);
-				Ascensor.InsertBack(aux);
+				Espera.InsertBack(aux);
 				aux1=new NodoPiso(A.origen);
 				Pisos.InsertBack(aux1);
 			}
