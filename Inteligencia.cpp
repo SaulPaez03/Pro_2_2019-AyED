@@ -2,11 +2,9 @@
 #include <string.h>
 #include <fstream>
 using namespace std;
-struct Datos;
 struct Datos{
 	string nombre, apellido, origen,destino,piso;
 };
-struct Nodo;
 struct Nodo{
 	Nodo *next, *prev;
 	Datos info;
@@ -20,11 +18,10 @@ struct Nodo{
 	}	
 	
 };
-class Lista;
 class Lista{
+	public:
 	Nodo *first,*last;
 	int size;
-	public:
 	Lista(){//Constructor de la lista
 		first= NULL;
 		last= NULL;
@@ -59,9 +56,64 @@ class Lista{
 		delete (&A);
 		size --;
 	}
+	Nodo First(){
+		return *first;
+	}
+	Nodo Last(){
+		return *last;
+	}
 };
+int Conv(string A){
+	if(A=="PB"){
+		return 0;
+	}else if(A=="1"){
+		return 1;
+	}else if(A=="2"){
+		return 2;
+	}else{
+		return 3;
+	}
+}
+void LlenarAscensor(string piso, Lista Ascensor, Lista Espera, int max){	
+	if(piso=="PB"){
+		while(Espera.first->info.origen==piso&&Ascensor.size<max){
+			Ascensor.InsertBack(*Espera.first);
+			Espera.erase(*Espera.first);
+		}
+	}else if(piso=="1"){
+		while(Espera.last->info.origen==piso&&Ascensor.size<max){
+			Ascensor.InsertBack(*Espera.last);
+			Espera.erase(*Espera.last);
+		}
+	}else if(piso=="2"){
+		if(Ascensor.size%2==0){
+			while(Espera.first->info.origen==piso&&Ascensor.size<max){
+				Ascensor.InsertBack(*Espera.first);
+				Espera.erase(*Espera.first);
+			}
+		}else{
+			while(Espera.last->info.origen==piso&&Ascensor.size<max){
+				Ascensor.InsertBack(*Espera.last);
+				Espera.erase(*Espera.last);
+			}
+		}
+	}else{
+		
+	}
+}
+void MoverAscensor(string actual, Lista Ascensor, Lista Espera, Lista Pisos, int max, int &iter){
+	while(actual!=Pisos.first->piso){
+		LlenarAscensor(actual, Ascensor, Espera, max);
+		if(Conv(actual)>Conv(Pisos.first->piso)){
+			//Bajar(actual);
+		}
+		else{
+			//Subir(actual);
+		}
+	}
+}
 int main(){
-	int max,num,count=1;
+	int max,num, iter=0;
 	string PisoActual="PB";
 	char symbol;
 	Datos A;
@@ -77,20 +129,14 @@ int main(){
 		if(symbol=='+'){
 			entrada>>num;
 			for(int i=0;i<num;i++){
-				cout<<i<<endl;
 				entrada>>A.nombre>>A.apellido>>A.origen>>A.destino;
-				cout<<"Lei"<<endl;
 				Nodo aux= Nodo(A);
-				cout<<"Declare el nodo";
 				Espera.InsertBack(aux);
-				cout<<"Meti el nodo en la lista";
 				Pisos.InsertBack(aux);
-				cout<<"Pisos";
 			}
-			count++;
 		}
 		else{
-			MoverAscensor();
+			MoverAscensor(PisoActual, Ascensor, Espera, Pisos, max, iter);
 		}
 	}
 	return 0;
