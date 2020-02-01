@@ -2,97 +2,95 @@
 #include <string.h>
 #include <fstream>
 using namespace std;
-struct Persona{
-	string nombre, apellido, origen,destino;
+struct Datos;
+struct Datos{
+	string nombre, apellido, origen,destino,piso;
 };
-struct Nodo{// Declaracion del nodo que contiene la informacion de las personas;
-	Persona info;
+struct Nodo;
+struct Nodo{
 	Nodo *next, *prev;
-	Nodo(Persona A){//Constructor del nodo;
-		info.nombre = A.nombre;
-		info.apellido = A.apellido;
-		info.destino = A.destino;
-		info.origen= A.origen;
-	}
-
-};
-struct NodoPiso{//Declaracion del nodod que contiene las solicitudes de movimiento del ascensor;
+	Datos info;
 	string piso;
-	NodoPiso *next,*prev;
-	NodoPiso(string A){//Constructor del nodo;
-		piso=A;
-		next=NULL;
-		prev=NULL;
-	}
+	Nodo(Datos A){//Constructor del nodo
+		info.nombre=A.nombre;
+		info.apellido=A.apellido;
+		info.origen=A.origen;
+		info.destino=A.destino;
+		piso=A.destino;
+	}	
+	
 };
-template <class T>
- class Lista{//Implementacion de la lista, utilizando T como template para que funcione con ambos tipos de nodo.
-	public:
-	T *first, *last;
+class Lista;
+class Lista{
+	Nodo *first,*last;
 	int size;
-	Lista(){
+	public:
+	Lista(){//Constructor de la lista
 		first= NULL;
 		last= NULL;
 		size=0;
 	}
-	void InsertFront(T *A){//Inserta un elemento al principio de la lista;
+	void InsertFront(Nodo A){//Inserta un elemento al principio de la lista;
 		if(size!=0){
-			A->next= first;
-			A->prev= NULL;
-			first->prev= A;
-			first=A;
+			A.next= first;
+			A.prev= NULL;
+			first->prev= &A;
+			first=&A;
 		}else{
-			first=A;
-			last=A;
+			first=&A;
+			last=&A;
 		}
 		size++;
 	}
-	void InsertBack(T *A){//Inserta un elemento al final de la lista;
+	void InsertBack(Nodo A){//Inserta un elemento al final de la lista;
 		if(size!=0){
-			last->next=A;
-			A->prev=last;
-			last=A;
+			last->next=&A;
+			A.prev=last;
+			last=&A;
 		}else{
-			first=A;
-			last=A;
+			first=&A;
+			last=&A;
 		}
 		size++;
 	}
-	void erase(T *A){//Borra un element de la lista;
-		A->prev->next=A->next;
-		A->next->prev=A->prev;
-		delete (A);
+	void erase(Nodo A){//Borra un element de la lista;
+		A.prev->next=A.next;
+		A.next->prev=A.prev;
+		delete (&A);
 		size --;
 	}
-	
 };
-
-int main() {
+int main(){
 	int max,num,count=1;
+	string PisoActual="PB";
 	char symbol;
-	Persona *A;
-	A= new Persona;
-	Lista<NodoPiso> Pisos=Lista<NodoPiso>();
-	Lista<Nodo> Espera=Lista<Nodo>();
-	Lista<Nodo> Ascensor=
-	Nodo *aux;
-	NodoPiso *aux1;
+	Datos A;
+	Lista Pisos=Lista();
+	Lista Espera=Lista();
+	Lista Ascensor=Lista();
 	ifstream entrada;
-	entrada.open("Entrada.in",ios::in);
+	entrada.open("Entrada.in",ios::in);//Abre el archivo de lectura
 	entrada>>max;
 	while(!entrada.eof()){
-		Persona A;
+		Datos A;
 		entrada>>symbol;
 		if(symbol=='+'){
 			entrada>>num;
 			for(int i=0;i<num;i++){
+				cout<<i<<endl;
 				entrada>>A.nombre>>A.apellido>>A.origen>>A.destino;
-				aux= new Nodo(A);
+				cout<<"Lei"<<endl;
+				Nodo aux= Nodo(A);
+				cout<<"Declare el nodo";
 				Espera.InsertBack(aux);
-				aux1=new NodoPiso(A.origen);
-				Pisos.InsertBack(aux1);
+				cout<<"Meti el nodo en la lista";
+				Pisos.InsertBack(aux);
+				cout<<"Pisos";
 			}
 			count++;
+		}
+		else{
+			MoverAscensor();
 		}
 	}
 	return 0;
