@@ -57,8 +57,13 @@ class ListaPisos{
 				aux=aux->next;
 			}
 			aux->next=a->next;
-		}else{
+			size--;
+		}else if(size!=1){
 			first=first->next;
+			size--;
+		}else{
+			first=NULL;
+			size--;
 		}
 	}
 };
@@ -112,38 +117,59 @@ class Lista{
 			size--;
 		}
 	}
+	void EraseLast(){
+		if(size!=1&&size!=0){
+			size--;
+			last->prev->next==NULL;
+			last=last->prev;
+		}
+	}
 };
+bool Compare(Nodo *A, Nodo *B){
+	string a=A->info.nombre+" "+A->info.apellido;
+	string b=B->info.nombre+" "+B->info.apellido;
+	return a<b;
+}
+Nodo *Priority(Lista &A){
+	Nodo *aux1=A.first;
+	Nodo *aux2;
+	while(aux1!=NULL){
+		if(aux1->next!=NULL){
+			if(!Compare(aux2,aux1->next)){
+				aux2=aux1->next;
+			}
+		}
+		aux1=aux1->next;
+	}
+	cout<<&aux2;
+	return aux2;
+}
 void Vaciar(string actual, Lista &Ascensor, ListaPisos &Pisos, int iter){
 	Nodo *a=Ascensor.last;
-	NodoPisos *b=Pisos.first;
 	while(a!=NULL){
 		if(a->info.destino==actual){
-			cout<<a->info.nombre<<" "<<a->info.apellido<< " en "<<iter<<" intervalos."<<endl; 
-			Ascensor.erase(a);
-		}
-		if(a->prev!=NULL){
+			cout<<Ascensor.last->info.nombre<<" "<<Ascensor.last->info.apellido<< " en "<<iter<<" intervalos."<<endl; 
+			Ascensor.EraseLast();
 			a=a->prev;
 		}else{
 			break;
 		}
-	}
-	while(b!=NULL){
-		if(b->piso==actual){
-			Pisos.Erase(b);
-		}			
-		b=b->next;
+		
 	}
 }
-Subir(string &A){//Aumenta el piso actual.
+void Subir(string &A){//Aumenta el piso actual.
 	if(A=="PB"){
 		A="1";
+		return;
 	}else if(A=="1"){
 		A="2";
+		return;
 	}else if(A=="2"){
 		A="3";
+		return;
 	}
 }
-Bajar(string &A){//Decrementa el piso actual.
+void Bajar(string &A){//Decrementa el piso actual.
 	if(A=="1"){
 		A="PB";
 	}else if(A=="2"){
@@ -163,11 +189,6 @@ int Conv(string A){//Convierte los pisos a su representacion en enteros para pod
 		return 3;
 	}
 }
-bool Compare(Nodo *A, Nodo *B){
-	string a=A->info.nombre+" "+A->info.apellido;
-	string b=B->info.nombre+" "+B->info.apellido;
-	return a<b;
-}
 void LlenarAscensor(string piso, Lista &Ascensor, Lista &Espera,ListaPisos &Pisos, int max){//Mete elementos de la lista Espera a Ascensor segun el piso actual y la capacidad del ascensor.
 	NodoPisos *a;
 	NodoPisos *b=Pisos.first;
@@ -177,66 +198,66 @@ void LlenarAscensor(string piso, Lista &Ascensor, Lista &Espera,ListaPisos &Piso
 			a=new NodoPisos(Espera.first->info.destino);
 			Pisos.Enqueue(a);
 			Espera.erase(Espera.first);
+			cout<<"Entro alguien";
 			
 		}
 	}else if(piso=="1"){
-		while(Espera.last->info.origen==piso&&Ascensor.size<max){
+		while(Espera.size!=0&&Espera.last->info.origen==piso&&Ascensor.size<max){
 			Ascensor.InsertBack(Espera.last);
 			a=new NodoPisos(Espera.last->info.destino);
 			Pisos.Enqueue(a);
 			Espera.erase(Espera.last);
+						cout<<"Entro alguien";
 		}
 	}else if(piso=="2"){
-		if(Ascensor.size%2==0){
+		if(Espera.size!=0&&Ascensor.size%2==0){
 			while(Espera.first->info.origen==piso&&Ascensor.size<max){
 				Ascensor.InsertBack(Espera.first);
 				a=new NodoPisos(Espera.first->info.destino);
 				Pisos.Enqueue(a);
-				Espera.erase(Espera.first);
+				Espera.erase(Espera.first);			cout<<"Entro alguien";
 			}
 		}else{
-			while(Espera.last->info.origen==piso&&Ascensor.size<max){
+			while(Espera.size!=0&&Espera.last->info.origen==piso&&Ascensor.size<max){
 				Ascensor.InsertBack(Espera.last);
 				a=new NodoPisos(Espera.last->info.destino);
 				Pisos.Enqueue(a);
-				Espera.erase(Espera.last);
+				Espera.erase(Espera.last);			cout<<"Entro alguien";
 			}
 		}
 	}else{
-			Nodo *aux1=Espera.first;
-			Nodo *aux2;
-			while(aux1!=Espera.last){
-				Compare(aux1,aux1->next)?aux2=aux1:aux2=aux1->next;
-				aux1=aux1->next;
-			if(aux2->info.origen==piso&&Ascensor.size<max){
-				Ascensor.InsertBack(aux2);
-				a=new NodoPisos(aux2->info.destino);
-				Pisos.Enqueue(a);
-				Espera.erase(aux2);
-			}
-		}	
-	}
-	while(b!=NULL){
-		if(b->piso==piso){
-			Pisos.Erase(b);
+		Nodo *aux1;
+		aux1=Priority(Espera);cout<<"A ";
+		while(Espera.size!=0&&aux1->info.origen==piso){
+			Ascensor.InsertBack(aux1);cout<<"B ";
+			a=new NodoPisos(aux1->info.destino);cout<<"C ";
+			Pisos.Enqueue(a);cout<<"D ";
+			Espera.erase(aux1);cout<<"E ";
+			aux1=Priority(Espera); cout<<"F ";
 		}
-		b=b->next;
 	}
 }
-void MoverAscensor(string &actual, Lista &Ascensor, Lista &Espera, ListaPisos &Pisos, int max, int &iter){//Funci[on principal en la que se encuentran las llamadas a las demas funciones.
-	int count=0;
-	while(count<2){
-		cout<<actual<<" "<<Pisos.first->piso<<endl;
-			Vaciar(actual,Ascensor,Pisos, iter);
-			LlenarAscensor(actual, Ascensor, Espera,Pisos, max);
-		if(Conv(actual)<=Conv(Pisos.first->piso)){
-			Subir(actual);
-		}else{
-			Bajar(actual);
+void MoverAscensor(string &actual, Lista &Ascensor, Lista &Espera, ListaPisos &Pisos, int max, int &iter){//Funcion principal en la que se encuentran las llamadas a las demas funciones.
+	while(Pisos.first!=NULL){
+		Vaciar(actual,Ascensor,Pisos, iter);cout<<"Vacie ";
+		LlenarAscensor(actual, Ascensor, Espera,Pisos, max);cout<<"Llene ";
+		NodoPisos *b=Pisos.first;
+		while(b!=NULL){
+			if(b->piso==actual){
+				Pisos.Erase(b);cout<<"Borre un piso ";
+			}			
+			b=b->next;
 		}
-		count++;
-		iter++;
+		if(Pisos.first!=NULL){
+			if(Conv(actual)<Conv(Pisos.first->piso)){
+				Subir(actual);cout<<"Subi un piso ";
+			}else{
+				Bajar(actual);cout<<"Baje un piso";
+			}
+			iter++;cout<<iter<<endl;
+		}
 	}
+	cout<<"sali";
 }
 int main(){
 	int max, iter=1;
