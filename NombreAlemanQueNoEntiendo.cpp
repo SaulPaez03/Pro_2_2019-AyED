@@ -67,22 +67,26 @@ class Lista{
 			A->next->prev=A->prev;
 			delete (A);
 			size --;
-		}else if(A==first){
+		}else if(A==first&&size!=1){
 			first=A->next;
 			first->prev=NULL;
 			A->next==NULL;
 			size--;
-		}else{
+		}else if(A==last&&size!=1){
 			last=A->prev;
 			last->next==NULL;
 			A->prev==NULL;
 			size--;
+		}else{
+			first=NULL;
+			last=NULL;
+			size--;
 		}
 	}
-	Nodo<t> *First(){
+	Nodo<t> *GetFirst(){
 		return first;
 	}
-	Nodo<t> *Last(){
+	Nodo<t> *GetLast(){
 		return last;
 	}
 	t *get(Nodo<t> *A){
@@ -103,6 +107,16 @@ class Lista{
 	void Last(Nodo<t> *A){
 		last=A;
 	}
+	bool InList(t A){
+		Nodo<t> *B=GetFirst();
+		for(int i=0;i<Size();i++){
+			if(B->info==A){
+				return true;
+			}
+			B=next(B);
+		}
+		return false;
+	}
 };
 template <typename t>
 class Queue: public Lista<t>{
@@ -116,7 +130,7 @@ class Queue: public Lista<t>{
 		this->InsertBack(A);
 	}
 	void Dequeue(){
-		this->erase(this->First());
+		this->erase(this->GetFirst());
 	}
 	t Head(){
 		get(this->First());
@@ -134,10 +148,10 @@ class Stack: public Lista<t>{
 		this->InsertBack(A);
 	}
 	void Pop(){
-		this->erase(this->Last());
+		this->erase(this->GetLast());
 	}
-	t Top(){
-		return get(this->Last());
+	t *Top(){
+		return this->get(this->Last());
 	}
 };
 template <typename t>
@@ -152,7 +166,7 @@ class Deque: public Lista<t>{
 		InsertBack(A);
 	}
 	void EraseFront(){
-		this->erase(this->First());
+		this->erase(this->GetFirst());
 	}
 	t Head(){
 		get(this->First());
@@ -161,11 +175,12 @@ class Deque: public Lista<t>{
 		this->InsertBack(A);
 	}
 	void Pop(){
-		this->erase(this->Last());
+		this->erase(this->GetLast());
 	}
 	t tail(){
 		return get(this->Last());
 	}
+
 };
 template <typename t>
 class PriorityQueue: public Queue<t>{
@@ -175,14 +190,21 @@ class PriorityQueue: public Queue<t>{
 		this->First(NULL);
 		this->Last(NULL);
 	}
-	Nodo<t> *Priority(Nodo<t> *A){
-		Nodo<t> *aux= this->First();
-		Nodo<t> *aux1=A;
+	void Priority(Nodo<t> *A){
+		Nodo<t> *aux= this->GetFirst();
+		Nodo<t> *menor=A;
 		while(aux!=NULL){
-			this->get(aux1)<this->get(aux)?aux1=aux:aux1=aux1;
+			this->get(menor)<this->get(aux)?menor=menor:menor=aux;
 			aux=this->next(aux);
 		}
-		return aux1;
+		if(menor!=A){
+			A->next=menor->next;
+			A->prev=menor;
+			menor->next->prev=A;
+			menor->next=A;
+		}else{
+			this->Enqueue(A);
+		}
 	}
 	void insert(Nodo<t> *A, Nodo<t>*B){
 		B->next=A->next;
@@ -224,84 +246,132 @@ void Bajar(string &A){//Decrementa el piso actual.
 	}
 }
 void Vaciar(string actual, Stack<Datos> &Ascensor, Queue<string> &Pisos, int iter){
-	Nodo<Datos> *a=Ascensor.Last();
+	Nodo<Datos> *a=Ascensor.GetLast();
 	while(a!=NULL){
 		if(a->info.destino==actual){
 			Datos A=a->info;
 			cout<<A.nombre<<" "<<A.apellido<< " en "<<iter<<" intervalos."<<endl; 
 			Ascensor.Pop();
-			a=Ascensor.Last();
+			a=Ascensor.GetLast();
 		}else{
 			break;
 		}		
 	}
 }
-void LlenarAscensor(string &actual, Stack<Datos>Ascensor,Queue<Datos> PB,Stack<Datos> P1, Deque<Datos> P2, PriorityQueue<Datos> P3, Queue<string> Pisos, int max){
+void LlenarAscensor(string &actual, Stack<Datos> &Ascensor,Queue<Datos> &PB,Stack<Datos> &P1, Deque<Datos> &P2, PriorityQueue<Datos> &P3, Queue<string> &Pisos, int max){
 	if(actual=="PB"){
-		while(Ascensor.Size()<max&&!PB.IsEmpty()){
-			Ascensor.Push(PB.First());
-			Datos A=PB.First()->info;
+		while(Ascensor.Size()<max&&PB.IsEmpty()==false){
+			Ascensor.Push(PB.GetFirst());
+			Datos A=*PB.get(PB.GetFirst());
 			Nodo<string> *B=new Nodo<string>(A.destino);
-			Pisos.Enqueue(B);
+			if(!Pisos.InList(A.destino)){
+				Pisos.Enqueue(B);
+			}
 			PB.Dequeue();
 		}
 	}else if(actual=="1"){
 		while(Ascensor.Size()<max&&!P1.IsEmpty()){
-			Ascensor.Push(P1.Last());
-			Datos A=*P1.get(P1.Last());
+			Ascensor.Push(P1.GetLast());
+			Datos A=*P1.get(P1.GetLast());
 			Nodo<string> *B=new Nodo<string>(A.destino);
-			Pisos.Enqueue(B);
+			if(!Pisos.InList(A.destino)){
+				Pisos.Enqueue(B);
+			}
 			P1.Pop();
 		}
 	}else if(actual=="2"){
 		while(Ascensor.Size()<max&&!P2.IsEmpty()){
 			if(P2.Size()%2==0){
-				Ascensor.Push(P2.First());
-				Datos A=*P2.get(P2.First());
+				Ascensor.Push(P2.GetFirst());
+				Datos A=*P2.get(P2.GetFirst());
 				Nodo<string> *B=new Nodo<string>(A.destino);
-				Pisos.Enqueue(B);
+				if(!Pisos.InList(A.destino)){
+					Pisos.Enqueue(B);
+				}
 				P2.EraseFront();
 			}else{
-				Ascensor.Push(P2.Last());
-				Datos A=*P2.get(P2.Last());
+				Ascensor.Push(P2.GetLast());
+				Datos A=*P2.get(P2.GetLast());
 				Nodo<string> *B=new Nodo<string>(A.destino);
-				Pisos.Enqueue(B);
+				if(!Pisos.InList(A.destino)){
+					Pisos.Enqueue(B);
+				}
 				P2.Pop();
 			}
 		}
 	}else if(actual=="3"){
 		while(Ascensor.Size()<max&&!P3.IsEmpty()){
-			Ascensor.Push(P3.First());
-			Datos A=*P3.get(P3.First());
+			Ascensor.Push(P3.GetFirst());
+			Datos A=*P3.get(P3.GetFirst());
 			Nodo<string> *B= new Nodo<string>(A.destino);
-			Pisos.Enqueue(B);
+			if(!Pisos.InList(A.destino)){
+				Pisos.Enqueue(B);
+			};
 			P3.Dequeue();
+		}
+	}
+}
+Queue<string> ActualizarPiso(string actual,Queue<string> Pisos, Queue<Datos> PB, Stack<Datos> P1, Deque<Datos>P2,PriorityQueue<Datos>P3){
+	if(actual=="PB"){cout<<"A ";
+		for(int i=0;i<Pisos.Size();i++){
+			if(*Pisos.get(Pisos.GetFirst())==actual){
+				cout<<"B ";
+				if(!PB.IsEmpty()){
+					cout<<"C ";
+					Pisos.Enqueue(Pisos.GetFirst());
+				cout<<"D ";
+				}
+			}
+			Pisos.Dequeue();
+		}
+	}else if(actual=="1"){
+		for(int i=0;i<Pisos.Size();i++){
+			if(*Pisos.get(Pisos.GetFirst())==actual){
+				if(!P1.IsEmpty()){
+					Pisos.Enqueue(Pisos.GetFirst());
+				}
+			}
+			Pisos.Dequeue();
+		}
+	}else if(actual=="2"){
+		for(int i=0;i<Pisos.Size();i++){
+			if(*Pisos.get(Pisos.GetFirst())==actual){
+				if(!P2.IsEmpty()){
+					Pisos.Enqueue(Pisos.GetFirst());
+				}
+			}
+			Pisos.Dequeue();
+		}
+	}else{
+		for(int i=0;i<Pisos.Size();i++){
+			if(*Pisos.get(Pisos.GetFirst())==actual){
+				if(!P3.IsEmpty()){
+					Pisos.Enqueue(Pisos.GetFirst());
+				}
+			}
+			Pisos.Dequeue();
 		}
 	}
 }
 void MoverAscensor(string &actual, Stack<Datos> &Ascensor, Queue<string> &Pisos,Queue<Datos> &PB,Stack<Datos> &P1,Deque<Datos> &P2,PriorityQueue<Datos> &P3, int max, int &iter){//Funcion principal en la que se encuentran las llamadas a las demas funciones.
 	while(!Pisos.IsEmpty()){
-		Vaciar(actual,Ascensor,Pisos, iter);cout<<"Vacie ";
-		LlenarAscensor(actual, Ascensor,PB,P1,P2,P3,Pisos, max);cout<<"Llene ";
-		Nodo<string> *b=Pisos.First();
-		int n= Pisos.Size();
-		for(int i=0;i<Pisos.Size();i++){
-			if(b->info==actual){
-				Pisos.erase(b);
-				n=Pisos.Size();
-			}
-			b=b->next;
-		}
+//		cout<<iter<<" iteraciones."<<endl;
+//		cout<<actual<<" "<<*Pisos.get(Pisos.GetFirst())<<endl;
+		Vaciar(actual,Ascensor,Pisos, iter);
+		LlenarAscensor(actual, Ascensor,PB,P1,P2,P3,Pisos, max);
+		Nodo<string> *b=Pisos.GetFirst();
+		Pisos=ActualizarPiso(actual,Pisos,PB,P1,P2,P3);
 		if(!Pisos.IsEmpty()){
-			if(Conv(actual)<Conv(*Pisos.get(Pisos.First() ) ) ){
-				Subir(actual);cout<<"Subi un piso ";
+			if(Conv(actual)<Conv(*Pisos.get(Pisos.GetFirst() ) ) ){
+				Subir(actual);
 			}else{
-				Bajar(actual);cout<<"Baje un piso";
+				Bajar(actual);
 			}
 			iter++;
 		}
 	}
-	cout<<"sali";
+//	cout<<"Se acaba el intervalo"<<endl;
+
 }
 int main(){
 	int max, iter=1;
@@ -327,20 +397,17 @@ int main(){
 				Nodo<Datos> *aux=new Nodo<Datos>(A);
 				if(A.origen=="PB"){
 					PB.Enqueue(aux);
-					cout<<"0"<<endl;
 				}else if(A.origen=="1"){
 					P1.Push(aux);
-					cout<<"1"<<endl;
 				}else if(A.origen=="2"){
 					P2.PushBack(aux);
-					cout<<"2"<<endl;
 				}else if(A.origen=="3"){
-					Nodo<Datos> *aux1=P3.Priority(aux);
-					P3.insert(aux1,aux);
-					cout<<"3"<<endl;
+					P3.Priority(aux);
 				}
 				Nodo<string> *piso= new Nodo<string>(A.origen);
-				Pisos.Enqueue(piso);
+				if(!Pisos.InList(A.origen)){
+					Pisos.Enqueue(piso);
+				}
 			}
 		}
 		MoverAscensor(PisoActual, Ascensor, Pisos,PB, P1,P2,P3, max, iter);
